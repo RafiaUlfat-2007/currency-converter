@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+
+  <div class="header">
+    <h1>Currency Converter</h1>
+    <p>Live Exchange Rates</p>
+  </div>
+
+  <div class="card">
+
+    <!-- Amount -->
+    <div class="input-group">
+      <label>Amount</label>
+
+      <div class="input-row">
+        <input
+          type="number"
+          id="amount"
+          placeholder="Enter amount"
+          value="1"
+        >
+
+        <select id="fromCurrency"></select>
+      </div>
+    </div>
+
+    <!-- Swap Button -->
+    <div class="swap-box">
+      <button id="swapBtn">⇅</button>
+    </div>
+
+    <!-- To Currency -->
+    <div class="input-group">
+      <label>Convert To</label>
+
+      <select id="toCurrency"></select>
+    </div>
+
+    <!-- Convert Button -->
+    <button id="convertBtn">
+      Convert
+    </button>
+
+    <!-- Result -->
+    <div class="result" id="resultBox">
+      <h2 id="resultAmount"></h2>
+      <p id="resultText"></p>
+      <small id="rateInfo"></small>
+    </div>
+
+    <!-- Error -->
+    <div class="error" id="errorBox"></div>
+
+  </div>
+
+</div>
+
+<script>
+const currencies = [
+  "USD","EUR","GBP","PKR","INR","AED","SAR",
+  "CAD","AUD","JPY","CHF","CNY","KWD","QAR",
+  "BDT","TRY","MYR","SGD","ZAR","MXN","BRL"
+];
+
+// Elements
+const amount = document.getElementById("amount");
+const fromCurrency = document.getElementById("fromCurrency");
+const toCurrency = document.getElementById("toCurrency");
+const convertBtn = document.getElementById("convertBtn");
+const swapBtn = document.getElementById("swapBtn");
+
+const resultBox = document.getElementById("resultBox");
+const resultAmount = document.getElementById("resultAmount");
+const resultText = document.getElementById("resultText");
+const rateInfo = document.getElementById("rateInfo");
+const errorBox = document.getElementById("errorBox");
+
+
+// Dropdown fill
+function loadCurrencies() {
+
+  currencies.forEach(currency => {
+
+    let option1 = document.createElement("option");
+    option1.value = currency;
+    option1.textContent = currency;
+    fromCurrency.appendChild(option1);
+
+    let option2 = document.createElement("option");
+    option2.value = currency;
+    option2.textContent = currency;
+    toCurrency.appendChild(option2);
+
+  });
+
+  fromCurrency.value = "USD";
+  toCurrency.value = "PKR";
+}
+
+
+// Convert Function
+async function convertCurrency() {
+
+  const amountValue = parseFloat(amount.value);
+  const from = fromCurrency.value;
+  const to = toCurrency.value;
+
+  errorBox.style.display = "none";
+  resultBox.style.display = "none";
+
+  if (!amountValue || amountValue <= 0) {
+    showError("Please enter valid amount");
+    return;
+  }
+
+  convertBtn.innerText = "Converting...";
+  convertBtn.disabled = true;
+
+  try {
+
+    const response = await fetch(
+      `https://open.er-api.com/v6/latest/${from}`
+    );
+
+    const data = await response.json();
+
+    const rate = data.rates[to];
+
+    const converted = (amountValue * rate).toFixed(2);
+
+    resultAmount.innerText = `${converted} ${to}`;
+
+    resultText.innerText =
+      `${amountValue} ${from} = ${converted} ${to}`;
+
+    rateInfo.innerText =
+      `1 ${from} = ${rate.toFixed(2)} ${to}`;
+
+    resultBox.style.display = "block";
+
+  } catch (error) {
+    showError("Something went wrong. Check internet.");
+  }
+
+  convertBtn.innerText = "Convert";
+  convertBtn.disabled = false;
+}
+
+
+// Swap currencies
+function swapCurrencies() {
+
+  let temp = fromCurrency.value;
+
+  fromCurrency.value = toCurrency.value;
+  toCurrency.value = temp;
+
+}
+
+
+// Error function
+function showError(message) {
+  errorBox.innerText = message;
+  errorBox.style.display = "block";
+}
+
+
+// Buttons
+convertBtn.addEventListener("click", convertCurrency);
+
+swapBtn.addEventListener("click", swapCurrencies);
+
+// Enter key support
+amount.addEventListener("keydown", function(e){
+  if(e.key === "Enter"){
+    convertCurrency();
+  }
+});
+
+
+// Load currencies
+loadCurrencies();
+
+</script>
+</body>
+</html>
