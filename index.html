@@ -134,6 +134,11 @@ async function convertCurrency() {
 
     const rate = data.rates[to];
 
+    if (!rate) {
+      showError("Is currency ka rate available nahi hai.");
+      return;
+    }
+
     const converted = (amountValue * rate).toFixed(2);
 
     resultAmount.innerText = `${converted} ${to}`;
